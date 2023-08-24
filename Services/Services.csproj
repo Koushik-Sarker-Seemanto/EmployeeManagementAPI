@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dtos\Dtos.csproj" />
+      <ProjectReference Include="..\Services.Abstraction\Services.Abstraction.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentValidation" Version="11.7.1" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    </ItemGroup>
+
+
+</Project>
