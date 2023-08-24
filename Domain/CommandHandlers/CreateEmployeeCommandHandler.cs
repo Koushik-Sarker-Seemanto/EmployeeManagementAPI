@@ -48,8 +48,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             EmployeeDto employeeDto = _mapper.Map<CreateEmployeeCommand, EmployeeDto>(command);
             employeeDto.Id = Guid.NewGuid().ToString();
             
-            Employee? isEmailAvailable = await _employeeService.GetEmployeeAsync(correlationId,
-                e => e.Email == command.Email, cancellationToken);
+            Employee? isEmailAvailable = await _employeeService.GetEmployeeAsync(e => e.Email == command.Email, cancellationToken);
             
             if (isEmailAvailable != null)
             {

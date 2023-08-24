@@ -45,8 +45,7 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
                 return response;
             }
 
-            Employee? isEmailValid = await _employeeService.GetEmployeeAsync(correlationId,
-                e => e.Email == command.Email && e.Id != command.Id, cancellationToken).ConfigureAwait(false);
+            Employee? isEmailValid = await _employeeService.GetEmployeeAsync(e => e.Email == command.Email && e.Id != command.Id, cancellationToken).ConfigureAwait(false);
 
             if (isEmailValid != null)
             {
@@ -57,13 +56,16 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
             }
 
             EmployeeDto employeeDto = _mapper.Map<UpdateEmployeeCommand, EmployeeDto>(command);
-            (EmployeeDto? result, string message) = await _employeeService.UpdateEmployee(correlationId, employeeDto, cancellationToken);
+            (EmployeeDto? result, string message, HttpStatusCode status) = await _employeeService.UpdateEmployee(correlationId, employeeDto, cancellationToken);
             if (result != null)
             {
+                response.StatusCode = status;
                 response.Result = result;
                 _logger.LogInformation($"UpdateEmployeeCommandHandler ENDED Successfully with CorrelationId: {correlationId}");
                 return response;
             }
+
+            response.StatusCode = status;
             response.ValidationResult.AddError(message);
             _logger.LogInformation($"UpdateEmployeeCommandHandler ENDED with failure for CorrelationId: {correlationId}");
             return response;

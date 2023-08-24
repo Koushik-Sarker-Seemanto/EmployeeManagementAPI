@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Net;
 using AutoMapper;
 using Dtos;
 using Entities;
@@ -21,18 +22,26 @@ public class EmployeeService : IEmployeeService
         _mapper = mapper;
     }
 
-    public async Task<Employee?> GetEmployeeAsync(string correlationId, Expression<Func<Employee, bool>> expression,
+    public async Task<Employee?> GetEmployeeAsync(Expression<Func<Employee, bool>> expression,
         CancellationToken cancellationToken)
     {
         Employee? employee = await _dbContext.Employees.FirstOrDefaultAsync(expression, cancellationToken);
         return employee;
     }
     
-    public async Task<IQueryable<Employee>> GetEmployeesAsync(string correlationId, Expression<Func<Employee, bool>> expression,
-        CancellationToken cancellationToken)
+    public async Task<IQueryable<Employee>> GetEmployeesAsync(Expression<Func<Employee, bool>> expression,
+        CancellationToken cancellationToken, IQueryable<Employee>? employees)
     {
-        var employee = _dbContext.Employees.Where(expression);
-        return employee;
+        if (employees != null)
+        {
+            var employee = employees.Where(expression);
+            return employee;
+        }
+        else
+        {
+            var employee = _dbContext.Employees.Where(expression);
+            return employee;
+        }
     }
     
     public async Task<EmployeeDto?> CreateEmployee(string correlationId, EmployeeDto employeeDto, CancellationToken cancellationToken)
@@ -54,7 +63,7 @@ public class EmployeeService : IEmployeeService
         }
     }
     
-    public async Task<(EmployeeDto?, string)> UpdateEmployee(string correlationId, EmployeeDto employeeDto, CancellationToken cancellationToken)
+    public async Task<(EmployeeDto?, string, HttpStatusCode)> UpdateEmployee(string correlationId, EmployeeDto employeeDto, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"UpdateEmployee STARTED with CorrelationId: {correlationId}");
         try
@@ -72,56 +81,42 @@ public class EmployeeService : IEmployeeService
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 EmployeeDto result = _mapper.Map<Employee, EmployeeDto>(response.Entity);
                 _logger.LogInformation($"UpdateEmployee ENDED Successfully with CorrelationId: {correlationId}");
-                return (result, "");
+                return (result, "", HttpStatusCode.OK);
             }
 
             _logger.LogInformation($"UpdateEmployee ENDED with Failure for CorrelationId: {correlationId}");
-            return (null, "Employee Id not found");
+            return (null, "Employee Id not found", HttpStatusCode.BadRequest);
         }
         catch (Exception e)
         {
             _logger.LogError($"Exception occurred while executing UpdateEmployee for CorrelationId: {correlationId}, Error: {e.Message}");
-            return (null, e.Message);
+            return (null, e.Message, HttpStatusCode.InternalServerError);
         }
     }
 
-    public async Task<bool> IsEmailAvailable(string correlationId, string email,
-        CancellationToken cancellationToken)
+    public async Task<(EmployeeDto?, string, HttpStatusCode)> DeleteEmployee(string correlationId, string id, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"IsEmailAvailable STARTED with CorrelationId: {correlationId}");
+        _logger.LogInformation($"DeleteEmployee STARTED with CorrelationId: {correlationId}");
         try
         {
-            Employee? employee = await  _dbContext.Employees.FirstOrDefaultAsync(emp => emp.Email.Contains(email), cancellationToken).ConfigureAwait(false);
-            _logger.LogInformation($"IsEmailAvailable ENDED Successfully isAvailable: {employee == null} for CorrelationId: {correlationId}");
-            return employee == null;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError($"Exception occurred while executing IsEmailAvailable for CorrelationId: {correlationId}, Error: {e.Message}");
-            return false;
-        }
-    }
-
-    public async Task<EmployeeDto?> GetEmployeeByEmail(string correlationId, string email, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation($"GetEmployeeByEmail STARTED with CorrelationId: {correlationId}");
-        try
-        {
-            Employee? employee = await  _dbContext.Employees.FirstOrDefaultAsync(emp => emp.Email.Contains(email), cancellationToken).ConfigureAwait(false);
+            Employee? employee =
+                await _dbContext.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken).ConfigureAwait(false);
             if (employee != null)
             {
-                EmployeeDto employeeDto = _mapper.Map<Employee, EmployeeDto>(employee);
-                _logger.LogInformation($"GetEmployeeByEmail ENDED Successfully with CorrelationId: {correlationId}");
-                return employeeDto;
+                var response = _dbContext.Employees.Remove(employee);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                EmployeeDto result = _mapper.Map<Employee, EmployeeDto>(response.Entity);
+                _logger.LogInformation($"DeleteEmployee ENDED Successfully with CorrelationId: {correlationId}");
+                return (result, "", HttpStatusCode.OK);
             }
 
-            _logger.LogInformation($"GetEmployeeByEmail ENDED with Failure for CorrelationId: {correlationId}");
-            return null;
+            _logger.LogInformation($"DeleteEmployee ENDED with Failure for CorrelationId: {correlationId}");
+            return (null, "Employee Id not found", HttpStatusCode.BadRequest);
         }
         catch (Exception e)
         {
-            _logger.LogError($"Exception occurred while executing GetEmployeeByEmail for CorrelationId: {correlationId}, Error: {e.Message}");
-            return null;
+            _logger.LogError($"Exception occurred while executing DeleteEmployee for CorrelationId: {correlationId}, Error: {e.Message}");
+            return (null, e.Message, HttpStatusCode.InternalServerError);
         }
     }
 }
