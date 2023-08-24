@@ -9,5 +9,14 @@ public class ApplicationDbContext : DbContext
     {
     }
     
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Employee>()
+            .HasIndex(e => e.Email)
+            .IsUnique();
+    }
+    
     public DbSet<Employee> Employees { get; set; }
 }

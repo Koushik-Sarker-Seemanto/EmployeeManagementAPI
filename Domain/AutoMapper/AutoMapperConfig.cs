@@ -9,7 +9,8 @@ public class AutoMapperConfig : Profile
 {
     public AutoMapperConfig()
     {
-        CreateMap<EmployeeDto, Employee>().ReverseMap();
+        CreateMap<Employee, EmployeeDto>().ReverseMap();
         CreateMap<CreateEmployeeCommand, EmployeeDto>().ReverseMap();
+        CreateMap<UpdateEmployeeCommand, EmployeeDto>().ReverseMap();
     }
 }

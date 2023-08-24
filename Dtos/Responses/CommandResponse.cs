@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace Dtos.Responses;
 
 public class CommandResponse
@@ -15,4 +17,6 @@ public class CommandResponse
     public ValidationResponse ValidationResult { get; set; }
 
     public object Result { get; set; }
+
+    public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
 }

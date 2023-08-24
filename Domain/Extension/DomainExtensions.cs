@@ -14,9 +14,11 @@ public static class DomainExtensions
     {
         // Register Handlers
         services.AddScoped<IRequestHandler<CreateEmployeeCommand, CommandResponse>, CreateEmployeeCommandHandler>();
+        services.AddScoped<IRequestHandler<UpdateEmployeeCommand, CommandResponse>, UpdateEmployeeCommandHandler>();
         
         //Register Validators
         services.AddScoped<IValidator<CreateEmployeeCommand>, CreateEmployeeCommandValidator>();
+        services.AddScoped<IValidator<UpdateEmployeeCommand>, UpdateEmployeeCommandValidator>();
         
         return services;
     }

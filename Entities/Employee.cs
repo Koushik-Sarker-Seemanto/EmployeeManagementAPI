@@ -7,8 +7,8 @@ public class Employee : BaseEntity
 {
     public Employee()
     {
-        this.CreatedAt = new DateTime();
-        this.UpdatedAt = new DateTime();
+        this.CreatedAt = DateTime.UtcNow;
+        this.UpdatedAt = DateTime.UtcNow;
     }
     [Required]
     public string Name { get; set; }

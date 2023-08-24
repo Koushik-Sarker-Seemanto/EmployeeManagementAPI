@@ -1,3 +1,4 @@
+using System.Net;
 using AutoMapper;
 using Domain.Commands;
 using Dtos;
@@ -15,20 +16,20 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
     private readonly ILogger<CreateEmployeeCommandHandler> _logger;
     private readonly IValidationService _validationService;
     private readonly IMapper _mapper;
-    private readonly ApplicationDbContext _dbContext;
-
+    private readonly IEmployeeService _employeeService;
     
-    public CreateEmployeeCommandHandler(ILogger<CreateEmployeeCommandHandler> logger, IValidationService validationService, IMapper mapper, ApplicationDbContext dbContext)
+    public CreateEmployeeCommandHandler(ILogger<CreateEmployeeCommandHandler> logger, IValidationService validationService, IMapper mapper, ApplicationDbContext dbContext, IEmployeeService employeeService)
     {
         _logger = logger;
         _validationService = validationService;
         _mapper = mapper;
-        _dbContext = dbContext;
+        _employeeService = employeeService;
     }
     
     public async Task<CommandResponse> Handle(CreateEmployeeCommand command, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"CreateEmployeeCommandHandler STARTED with CorrelationId: {command.CorrelationId}");
+        string correlationId = command.CorrelationId ?? Guid.NewGuid().ToString();
+        _logger.LogInformation($"CreateEmployeeCommandHandler STARTED with CorrelationId: {correlationId}");
         CommandResponse response = new CommandResponse
         {
             ValidationResult = new ValidationResponse(),
@@ -38,27 +39,42 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             ValidationResponse validationResponse = await _validationService.ValidateAsync(command);
             if (!validationResponse.IsValid)
             {
-                _logger.LogError($"CreateEmployeeCommandHandler -> Validation error occurred for CorrelationId: {command.CorrelationId}");
-                _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {command.CorrelationId}");
+                _logger.LogError($"CreateEmployeeCommandHandler -> Validation error occurred for CorrelationId: {correlationId}");
+                _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {correlationId}");
                 response.ValidationResult = validationResponse;
                 return response;
             }
 
             EmployeeDto employeeDto = _mapper.Map<CreateEmployeeCommand, EmployeeDto>(command);
-            Employee employee = _mapper.Map<EmployeeDto, Employee>(employeeDto);
-            employee.Id = Guid.NewGuid().ToString();
-            var res = await _dbContext.Employees.AddAsync(employee, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            employeeDto.Id = Guid.NewGuid().ToString();
             
-            response.Result = res.Entity;
-            _logger.LogInformation($"CreateEmployeeCommandHandler ENDED Successfully with CorrelationId: {command.CorrelationId}");
+            Employee? isEmailAvailable = await _employeeService.GetEmployeeAsync(correlationId,
+                e => e.Email == command.Email, cancellationToken);
+            
+            if (isEmailAvailable != null)
+            {
+                response.ValidationResult.AddError("Email already exists", "Email");
+                _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {correlationId}");
+                return response;
+            }
+
+            EmployeeDto? result = await _employeeService.CreateEmployee(correlationId, employeeDto, cancellationToken);
+            if (result != null)
+            {
+                response.Result = result;
+                _logger.LogInformation($"CreateEmployeeCommandHandler ENDED Successfully with CorrelationId: {correlationId}");
+                return response;
+            }
+            response.ValidationResult.AddError("Failed to create employee");
+            _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {correlationId}");
             return response;
         }
         catch (Exception e)
         {
-            _logger.LogError($"Exception occurred while executing CreateEmployeeCommandHandler for CorrelationId: {command.CorrelationId}, Error: {e.Message}");
-            _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {command.CorrelationId}");
+            _logger.LogError($"Exception occurred while executing CreateEmployeeCommandHandler for CorrelationId: {correlationId}, Error: {e.Message}");
+            _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {correlationId}");
             response.ValidationResult.AddError(e.Message);
+            response.StatusCode = HttpStatusCode.InternalServerError;
             return response;
         }
     }

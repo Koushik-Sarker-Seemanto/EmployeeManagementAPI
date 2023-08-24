@@ -8,10 +8,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Dtos\Dtos.csproj" />
+      <ProjectReference Include="..\Repository\Repository.csproj" />
       <ProjectReference Include="..\Services.Abstraction\Services.Abstraction.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="12.0.1" />
       <PackageReference Include="FluentValidation" Version="11.7.1" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     </ItemGroup>
