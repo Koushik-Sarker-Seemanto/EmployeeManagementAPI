@@ -53,7 +53,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
             
 
             List<Employee> employeeList = await employees?.Skip(query.PageSize * query.PageNo)
-                ?.Take(query.PageSize)?.ToListAsync()!;
+                ?.Take(query.PageSize)?.ToListAsync(cancellationToken)!;
             List<EmployeeDto>? employeeDtoList =
                 employeeList?.Select(x => _mapper.Map<Employee, EmployeeDto>(x))?.ToList();
             response.Result = employeeDtoList!;
