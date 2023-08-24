@@ -47,39 +47,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
                 return response;
             }
             
-            IQueryable<Employee>? employees = null;
-            if (query.Name != null)
-            {
-                _logger.LogInformation(
-                    $"GetEmployeesQueryHandler -> Going to apply condition on Name: {query.Name} for CorrelationId: {correlationId}");
-                employees = await _employeeService
-                    .GetEmployeesAsync(e => e.Name.Contains(query.Name), cancellationToken).ConfigureAwait(false);
-            }
-
-            if (query.Email != null)
-            {
-                _logger.LogInformation(
-                    $"GetEmployeesQueryHandler -> Going to apply condition on Email: {query.Email} for CorrelationId: {correlationId}");
-                employees = await _employeeService
-                    .GetEmployeesAsync(e => e.Name.Contains(query.Email), cancellationToken, employees)
-                    .ConfigureAwait(false);
-            }
-
-            if (query.Department != null)
-            {
-                _logger.LogInformation(
-                    $"GetEmployeesQueryHandler -> Going to apply condition on Department: {query.Department} for CorrelationId: {correlationId}");
-                employees = await _employeeService.GetEmployeesAsync(e => e.Department == query.Department,
-                    cancellationToken, employees).ConfigureAwait(false);
-            }
-
-            if (employees == null)
-            {
-                _logger.LogInformation(
-                    $"GetEmployeesQueryHandler -> Going to fetch all Employees for CorrelationId: {correlationId}");
-                employees = await _employeeService.GetEmployeesAsync(e => true, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            IQueryable<Employee>? employees = await BuildQueryable(query, cancellationToken, correlationId);
 
             employees = BuildOrderByQyQueryable(query, employees);
             
@@ -101,6 +69,45 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
             return response;
         }
 
+    }
+
+    private async Task<IQueryable<Employee>> BuildQueryable(GetEmployeesQuery query, CancellationToken cancellationToken, string correlationId)
+    {
+        IQueryable<Employee>? employees = null;
+        if (query.Name != null)
+        {
+            _logger.LogInformation(
+                $"GetEmployeesQueryHandler -> Going to apply condition on Name: {query.Name} for CorrelationId: {correlationId}");
+            employees = await _employeeService
+                .GetEmployeesAsync(e => e.Name.Contains(query.Name), cancellationToken).ConfigureAwait(false);
+        }
+
+        if (query.Email != null)
+        {
+            _logger.LogInformation(
+                $"GetEmployeesQueryHandler -> Going to apply condition on Email: {query.Email} for CorrelationId: {correlationId}");
+            employees = await _employeeService
+                .GetEmployeesAsync(e => e.Name.Contains(query.Email), cancellationToken, employees)
+                .ConfigureAwait(false);
+        }
+
+        if (query.Department != null)
+        {
+            _logger.LogInformation(
+                $"GetEmployeesQueryHandler -> Going to apply condition on Department: {query.Department} for CorrelationId: {correlationId}");
+            employees = await _employeeService.GetEmployeesAsync(e => e.Department == query.Department,
+                cancellationToken, employees).ConfigureAwait(false);
+        }
+
+        if (employees == null)
+        {
+            _logger.LogInformation(
+                $"GetEmployeesQueryHandler -> Going to fetch all Employees for CorrelationId: {correlationId}");
+            employees = await _employeeService.GetEmployeesAsync(e => true, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        return employees;
     }
 
     private static IQueryable<Employee> BuildOrderByQyQueryable(GetEmployeesQuery query, IQueryable<Employee> employees)
@@ -130,14 +137,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
         }
         else
         {
-            if (query.SortType == SortTypeEnum.ASC)
-            {
-                employees = employees.OrderBy(e => e.Name);
-            }
-            else
-            {
-                employees = employees.OrderByDescending(e => e.Name);
-            }
+            employees = query.SortType == SortTypeEnum.ASC ? employees.OrderBy(e => e.Name) : employees.OrderByDescending(e => e.Name);
         }
 
         return employees;
