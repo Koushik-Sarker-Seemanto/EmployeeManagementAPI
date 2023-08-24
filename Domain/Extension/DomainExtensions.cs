@@ -21,12 +21,14 @@ public static class DomainExtensions
         services.AddScoped<IRequestHandler<UpdateEmployeeCommand, CommandResponse>, UpdateEmployeeCommandHandler>();
         services.AddScoped<IRequestHandler<DeleteEmployeeQuery, QueryResponse<EmployeeDto>>, DeleteEmployeeQueryHandler>();
         services.AddScoped<IRequestHandler<GetEmployeesQuery, QueryResponse<List<EmployeeDto>>>, GetEmployeesQueryHandler>();
+        services.AddScoped<IRequestHandler<GetEmployeeByIdQuery, QueryResponse<EmployeeDto>>, GetEmployeeByIdQueryHandler>();
         
         //Register Validators
         services.AddScoped<IValidator<CreateEmployeeCommand>, CreateEmployeeCommandValidator>();
         services.AddScoped<IValidator<UpdateEmployeeCommand>, UpdateEmployeeCommandValidator>();
         services.AddScoped<IValidator<DeleteEmployeeQuery>, DeleteEmployeeQueryValidator>();
         services.AddScoped<IValidator<GetEmployeesQuery>, GetEmployeesQueryValidator>();
+        services.AddScoped<IValidator<GetEmployeeByIdQuery>, GetEmployeeByIdQueryValidator>();
         
         return services;
     }

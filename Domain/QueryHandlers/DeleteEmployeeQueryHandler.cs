@@ -12,11 +12,13 @@ public class DeleteEmployeeQueryHandler : IRequestHandler<DeleteEmployeeQuery, Q
 {
     private readonly ILogger<DeleteEmployeeQueryHandler> _logger;
     private readonly IEmployeeService _employeeService;
+    private readonly IValidationService _validationService;
     
-    public DeleteEmployeeQueryHandler(ILogger<DeleteEmployeeQueryHandler> logger, IEmployeeService employeeService)
+    public DeleteEmployeeQueryHandler(ILogger<DeleteEmployeeQueryHandler> logger, IEmployeeService employeeService, IValidationService validationService)
     {
         _logger = logger;
         _employeeService = employeeService;
+        _validationService = validationService;
     }
     
     public async Task<QueryResponse<EmployeeDto>> Handle(DeleteEmployeeQuery query, CancellationToken cancellationToken)
@@ -29,6 +31,14 @@ public class DeleteEmployeeQueryHandler : IRequestHandler<DeleteEmployeeQuery, Q
         };
         try
         {
+            ValidationResponse validationResult = await _validationService.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogError($"DeleteEmployeeQueryHandler -> Validation error occurred for CorrelationId: {correlationId}");
+                _logger.LogInformation($"DeleteEmployeeQueryHandler ENDED with failure for CorrelationId: {correlationId}");
+                response.ValidationResult = validationResult;
+                return response;
+            }
             (EmployeeDto? result, string message, HttpStatusCode status) = await _employeeService.DeleteEmployee(correlationId, query.Id, cancellationToken).ConfigureAwait(false);
             if (result != null)
             {

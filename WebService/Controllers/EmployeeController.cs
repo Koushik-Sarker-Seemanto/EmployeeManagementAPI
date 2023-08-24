@@ -67,8 +67,8 @@ namespace WebService.Controllers
             DeleteEmployeeQuery query = new DeleteEmployeeQuery
             {
                 Id = id,
+                CorrelationId = Guid.NewGuid().ToString()
             };
-            query.CorrelationId = Guid.NewGuid().ToString();
             _logger.LogInformation($"DeleteEmployee STARTED with CorrelationId: {query.CorrelationId}");
             QueryResponse<EmployeeDto> response = await this._mediator.Send(query);
             if (response?.ValidationResult == null)
@@ -89,8 +89,32 @@ namespace WebService.Controllers
         public async Task<IActionResult> GetEmployees([FromQuery] GetEmployeesQuery query)
         {
             query.CorrelationId = Guid.NewGuid().ToString();
-            _logger.LogInformation($"DeleteEmployee STARTED with CorrelationId: {query.CorrelationId}");
+            _logger.LogInformation($"GetEmployees STARTED with CorrelationId: {query.CorrelationId}");
             QueryResponse<List<EmployeeDto>> response = await this._mediator.Send(query);
+            if (response?.ValidationResult == null)
+            {
+                return this.StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+
+            if (!response.ValidationResult.IsValid)
+            {
+                _logger.LogInformation($"{JsonConvert.SerializeObject(response)}");
+                return this.StatusCode((int)response.StatusCode, response);
+            }
+            response.StatusCode = HttpStatusCode.OK;
+            return this.Ok(response);
+        }
+        
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEmployeeById(string id)
+        {
+            GetEmployeeByIdQuery query = new GetEmployeeByIdQuery
+            {
+                Id = id,
+                CorrelationId = Guid.NewGuid().ToString()
+            };
+            _logger.LogInformation($"GetEmployeeById STARTED with CorrelationId: {query.CorrelationId}");
+            QueryResponse<EmployeeDto> response = await this._mediator.Send(query);
             if (response?.ValidationResult == null)
             {
                 return this.StatusCode((int)HttpStatusCode.InternalServerError);

@@ -1,6 +1,4 @@
-using System.Linq.Expressions;
 using System.Net;
-using System.Reflection;
 using AutoMapper;
 using Domain.Queries;
 using Dtos;
@@ -16,15 +14,17 @@ namespace Domain.QueryHandlers;
 
 public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, QueryResponse<List<EmployeeDto>>>
 {
-    private readonly ILogger<DeleteEmployeeQueryHandler> _logger;
+    private readonly ILogger<GetEmployeesQueryHandler> _logger;
     private readonly IEmployeeService _employeeService;
     private readonly IMapper _mapper;
+    private readonly IValidationService _validationService;
     
-    public GetEmployeesQueryHandler(ILogger<DeleteEmployeeQueryHandler> logger, IEmployeeService employeeService, IMapper mapper)
+    public GetEmployeesQueryHandler(ILogger<GetEmployeesQueryHandler> logger, IEmployeeService employeeService, IMapper mapper, IValidationService validationService)
     {
         _logger = logger;
         _employeeService = employeeService;
         _mapper = mapper;
+        _validationService = validationService;
     }
 
     public async Task<QueryResponse<List<EmployeeDto>>> Handle(GetEmployeesQuery query,
@@ -38,6 +38,15 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
         };
         try
         {
+            ValidationResponse validationResult = await _validationService.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogError($"GetEmployeesQueryHandler -> Validation error occurred for CorrelationId: {correlationId}");
+                _logger.LogInformation($"GetEmployeesQueryHandler ENDED with failure for CorrelationId: {correlationId}");
+                response.ValidationResult = validationResult;
+                return response;
+            }
+            
             IQueryable<Employee>? employees = null;
             if (query.Name != null)
             {
