@@ -18,7 +18,7 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
     private readonly IMapper _mapper;
     private readonly IEmployeeService _employeeService;
     
-    public UpdateEmployeeCommandHandler(ILogger<UpdateEmployeeCommandHandler> logger, IValidationService validationService, IMapper mapper, ApplicationDbContext dbContext, IEmployeeService employeeService)
+    public UpdateEmployeeCommandHandler(ILogger<UpdateEmployeeCommandHandler> logger, IValidationService validationService, IMapper mapper, IEmployeeService employeeService)
     {
         _logger = logger;
         _validationService = validationService;
