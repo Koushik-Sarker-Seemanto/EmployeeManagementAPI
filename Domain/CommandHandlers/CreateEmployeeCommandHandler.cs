@@ -18,7 +18,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
     private readonly IMapper _mapper;
     private readonly IEmployeeService _employeeService;
     
-    public CreateEmployeeCommandHandler(ILogger<CreateEmployeeCommandHandler> logger, IValidationService validationService, IMapper mapper, ApplicationDbContext dbContext, IEmployeeService employeeService)
+    public CreateEmployeeCommandHandler(ILogger<CreateEmployeeCommandHandler> logger, IValidationService validationService, IMapper mapper, IEmployeeService employeeService)
     {
         _logger = logger;
         _validationService = validationService;
@@ -60,10 +60,13 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             EmployeeDto? result = await _employeeService.CreateEmployee(correlationId, employeeDto, cancellationToken);
             if (result != null)
             {
+                response.StatusCode = HttpStatusCode.OK;
                 response.Result = result;
                 _logger.LogInformation($"CreateEmployeeCommandHandler ENDED Successfully with CorrelationId: {correlationId}");
                 return response;
             }
+
+            response.StatusCode = HttpStatusCode.InternalServerError;
             response.ValidationResult.AddError("Failed to create employee");
             _logger.LogInformation($"CreateEmployeeCommandHandler ENDED with failure for CorrelationId: {correlationId}");
             return response;
