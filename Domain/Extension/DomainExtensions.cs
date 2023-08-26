@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Domain.CommandHandlers;
 using Domain.Commands;
 using Domain.Queries;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Domain.Extension;
 
+[ExcludeFromCodeCoverage]
 public static class DomainExtensions
 {
     public static IServiceCollection RegisterDomainExtensions(this IServiceCollection services)

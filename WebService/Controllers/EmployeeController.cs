@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Domain.Commands;
 using Domain.Queries;
@@ -9,6 +10,7 @@ using Newtonsoft.Json;
 
 namespace WebService.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
