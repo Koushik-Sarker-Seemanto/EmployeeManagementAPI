@@ -76,6 +76,14 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
     private async Task<IQueryable<Employee>> BuildQueryable(GetEmployeesQuery query, CancellationToken cancellationToken, string correlationId)
     {
         IQueryable<Employee>? employees = null;
+        if (query.SearchKey != null)
+        {
+            _logger.LogInformation(
+                $"GetEmployeesQueryHandler -> Going to apply condition on SearchKey: {query.SearchKey} for CorrelationId: {correlationId}");
+            employees = await _employeeService
+                .GetEmployeesAsync(e => e.Name.Contains(query.SearchKey) || e.Email.Contains(query.SearchKey), cancellationToken).ConfigureAwait(false);
+        }
+        
         if (query.Name != null)
         {
             _logger.LogInformation(

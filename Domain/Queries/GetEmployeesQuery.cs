@@ -8,6 +8,8 @@ namespace Domain.Queries;
 
 public class GetEmployeesQuery : BaseQuery, IRequest<QueryResponse<List<EmployeeDto>>>
 {
+    public string? SearchKey { get; set; }
+    
     public string? Name { get; set; }
     public Departments? Department { get; set; }
     public string? Email { get; set; }
