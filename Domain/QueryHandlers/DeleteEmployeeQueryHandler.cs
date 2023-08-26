@@ -44,6 +44,7 @@ public class DeleteEmployeeQueryHandler : IRequestHandler<DeleteEmployeeQuery, Q
             {
                 response.StatusCode = status;
                 response.Result = result;
+                response.Count = 1;
                 _logger.LogInformation($"DeleteEmployeeQueryHandler ENDED Successfully with CorrelationId: {correlationId}");
                 return response;
             }

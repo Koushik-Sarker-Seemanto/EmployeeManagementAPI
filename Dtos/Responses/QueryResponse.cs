@@ -17,6 +17,8 @@ public class QueryResponse<TResult>
     public ValidationResponse ValidationResult { get; set; }
 
     public TResult Result { get; set; }
+    
+    public int Count { get; set; }
 
     public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
 }

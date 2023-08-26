@@ -50,13 +50,15 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
             IQueryable<Employee>? employees = await BuildQueryable(query, cancellationToken, correlationId);
 
             employees = BuildOrderByQyQueryable(query, employees);
-            
+
+            int employeeCount = await employees.CountAsync(cancellationToken);
 
             List<Employee> employeeList = await employees?.Skip(query.PageSize * query.PageNo)
                 ?.Take(query.PageSize)?.ToListAsync(cancellationToken)!;
             List<EmployeeDto>? employeeDtoList =
                 employeeList?.Select(x => _mapper.Map<Employee, EmployeeDto>(x))?.ToList();
             response.Result = employeeDtoList!;
+            response.Count = employeeCount;
             return response;
         }
         catch (Exception e)
