@@ -75,7 +75,7 @@ public class EmployeeService : IEmployeeService
                 employee.Email = employeeDto.Email;
                 employee.Name = employeeDto.Name;
                 employee.Department = employeeDto.Department;
-                employee.DoB = employee.DoB;
+                employee.DoB = employeeDto.DoB;
                 employee.UpdatedAt = DateTime.UtcNow;
                 var response =  _dbContext.Employees.Update(employee);
                 await _dbContext.SaveChangesAsync(cancellationToken);
