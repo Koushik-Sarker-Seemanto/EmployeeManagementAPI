@@ -58,6 +58,7 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
             }
 
             EmployeeDto employeeDto = _mapper.Map<Employee, EmployeeDto>(employee);
+            response.StatusCode = HttpStatusCode.OK;
             response.Result = employeeDto;
             response.Count = 1;
             return response;
