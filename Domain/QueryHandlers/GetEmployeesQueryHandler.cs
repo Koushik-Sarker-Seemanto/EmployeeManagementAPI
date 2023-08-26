@@ -81,7 +81,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Query
             _logger.LogInformation(
                 $"GetEmployeesQueryHandler -> Going to apply condition on SearchKey: {query.SearchKey} for CorrelationId: {correlationId}");
             employees = await _employeeService
-                .GetEmployeesAsync(e => e.Name.Contains(query.SearchKey) || e.Email.Contains(query.SearchKey), cancellationToken).ConfigureAwait(false);
+                .GetEmployeesAsync(e => e.Id.Contains(query.SearchKey) || e.Name.Contains(query.SearchKey) || e.Email.Contains(query.SearchKey), cancellationToken).ConfigureAwait(false);
         }
         
         if (query.Name != null)
